@@ -11,19 +11,22 @@ use morphism::Morphism;
 
 let mut f: Morphism<uint, uint> = Morphism::new();
 for _ in range(0u, 100000u) {
-  f = f.push(|x| x + 42u);
+    f = f.push(|x| x + 42u);
 }
 // the type changes to Morphism<uint, Option<uint>> so rebind f
 let f = f.push(|x| Some(x));
 
 let mut g: Morphism<Option<uint>, Option<uint>> = Morphism::new();
 for _ in range(0u,  99999u) {
-  g = g.push(|x| x.map(|y| y - 42u));
+    g = g.push(|x| x.map(|y| y - 42u));
 }
 // the type changes to Morphism<Option<uint>, String> so rebind g
-let g = g.push(|x| x.map(|y| y + 1000u).to_string());
+let g = g
+    .push(|x| (x.map(|y| y + 1000u), String::from_str("welp")))
+    .push(|(l, r)| (l.map(|y| y + 42u), r))
+    .push(|(l, r)| (l, l.is_some(), r));
 
-assert_eq!(f.then(g).run(0u), String::from_str("Some(1042)"));
+assert_eq!(f.then(g).run(0u), (Some(1084), true, String::from_str("welp")));
 ```
 
 ## Documentation
