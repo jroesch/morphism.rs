@@ -19,9 +19,7 @@ let gm = gm
     .push(|:x| Some(x))
     .push(|:x| x.map(|y| y + 42u))
     .push(|:x| x.map(|y| y.to_string()));
-let hm = fm.then(gm);
-let res = hm.run(0u);
-assert_eq!(res, Some(String::from_str("42")));
+assert_eq!(fm.then(gm).run(0u), Some(String::from_str("42")));
 ```
 
 ## Documentation
