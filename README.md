@@ -7,19 +7,23 @@ A structure for suspended closure composition in Rust
 ## Example
 
 ```rust
-let mut fm: Morphism<uint, uint> = Morphism::new();
+use morphism::Morphism;
+
+let mut f: Morphism<uint, uint> = Morphism::new();
 for _ in range(0u, 100000u) {
-    fm = fm.push(|:x| x + 42u);
+  f = f.push(|x| x + 42u);
 }
-let mut gm: Morphism<uint, uint> = Morphism::new();
-for _ in range(0u, 100000u) {
-    gm = gm.push(|:x| x - 42u);
+// the type changes to Morphism<uint, Option<uint>> so rebind f
+let f = f.push(|x| Some(x));
+
+let mut g: Morphism<Option<uint>, Option<uint>> = Morphism::new();
+for _ in range(0u,  99999u) {
+  g = g.push(|x| x.map(|y| y - 42u));
 }
-let gm = gm
-    .push(|:x| Some(x))
-    .push(|:x| x.map(|y| y + 42u))
-    .push(|:x| x.map(|y| y.to_string()));
-assert_eq!(fm.then(gm).run(0u), Some(String::from_str("42")));
+// the type changes to Morphism<Option<uint>, String> so rebind g
+let g = g.push(|x| x.map(|y| y + 1000u).to_string());
+
+assert_eq!(f.then(g).run(0u), String::from_str("Some(1042)"));
 ```
 
 ## Documentation
