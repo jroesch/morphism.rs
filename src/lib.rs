@@ -4,9 +4,9 @@
 #![license = "MIT"]
 #![doc(html_root_url = "http://www.rust-ci.org/epsilonz/morphism.rs/doc/morphism/")]
 
-//! This crate provides a monoid for suspended closure composition. Composition
-//! is delayed and executed in a loop when `Morphism` is applied to an argument
-//! with `Morphism::run`.
+//! This crate provides a structure for suspended closure composition.
+//! Composition is delayed and executed in a loop when `Morphism` is applied to
+//! an argument with `Morphism::run`.
 
 #![feature(unboxed_closures)]
 
@@ -18,13 +18,13 @@ use std::mem::{
     transmute,
 };
 
-/// A suspended chain of functions.
+/// A suspended chain of closures.
 pub struct Morphism<'a, A, B> {
     fns: RingBuf<Box<FnOnce<(*const u8,), *const u8> + 'a>>,
 }
 
 impl<'a, A:'a> Morphism<'a, A, A> {
-    /// Creates the identity function chain.
+    /// Create the identity chain.
     ///
     /// # Example
     ///
@@ -42,8 +42,8 @@ impl<'a, A:'a> Morphism<'a, A, A> {
 }
 
 impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
-    /// Push a new function onto the end of the chain. This corresponds to
-    /// function composition.
+    /// Push a new closure onto the end of the chain. This corresponds to
+    /// closure composition.
     ///
     /// # Example
     ///
@@ -79,7 +79,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
         }
     }
 
-    /// Compose with another `Morphism`.
+    /// Compose one `Morphism` with another.
     ///
     /// # Example
     ///
@@ -134,7 +134,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
         }
     }
 
-    /// Given an argument, run the chain of functions in a loop and return the
+    /// Given an argument, run the chain of closures in a loop and return the
     /// final result.
     pub fn run(mut self, x: A) -> B { unsafe {
         let mut res = transmute::<Box<A>, *const u8>(box x);

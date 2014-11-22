@@ -3,7 +3,7 @@
 name = "morphism"
 version = "0.0.1"
 authors = [ "Darin Morrison <darinmorrison+rust@gmail.com>" ]
-description = "A monoid for suspended closure composition in Rust"
+description = "A structure for suspended closure composition in Rust"
 documentation = "http://www.rust-ci.org/epsilonz/morphism.rs/doc/morphism/"
 keywords = ["closures", "functional", "monoid", "stackless"]
 license = "MIT"

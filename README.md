@@ -1,6 +1,6 @@
 # morphism.rs
 
-A monoid for suspended closure composition in Rust
+A structure for suspended closure composition in Rust
 
 [![build status](https://api.travis-ci.org/epsilonz/morphism.rs.svg?branch=master)](https://travis-ci.org/epsilonz/morphism.rs)
 
