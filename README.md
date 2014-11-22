@@ -13,14 +13,14 @@ let mut f: Morphism<uint, uint> = Morphism::new();
 for _ in range(0u, 100000u) {
     f = f.push(|x| x + 42u);
 }
-// the type changes to Morphism<uint, Option<uint>> so rebind f
+// type becomes Morphism<uint, Option<uint>> so rebind f
 let f = f.push(|x| Some(x));
 
 let mut g: Morphism<Option<uint>, Option<uint>> = Morphism::new();
 for _ in range(0u,  99999u) {
     g = g.push(|x| x.map(|y| y - 42u));
 }
-// the type changes to Morphism<Option<uint>, String> so rebind g
+// type becomes Morphism<Option<uint>, (Option<uint>, bool, String)> so rebind g
 let g = g
     .push(|x| (x.map(|y| y + 1000u), String::from_str("welp")))
     .push(|(l, r)| (l.map(|y| y + 42u), r))
