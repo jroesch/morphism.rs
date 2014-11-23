@@ -59,13 +59,13 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
     /// use morphism::Morphism;
     ///
     /// let f: Morphism<uint, Option<String>> = Morphism::new()
-    ///     .dom(|x: Option<uint>| x.map(|y| y.to_string()))
-    ///     .dom(|x: Option<uint>| x.map(|y| y - 42u))
-    ///     .dom(|x: uint| Some(x + 42u + 42u));
+    ///     .head(|x: Option<uint>| x.map(|y| y.to_string()))
+    ///     .head(|x: Option<uint>| x.map(|y| y - 42u))
+    ///     .head(|x: uint| Some(x + 42u + 42u));
     /// assert_eq!(f.run(0u), Some(String::from_str("42")));
     /// ```
     #[inline]
-    pub fn dom<A, F:'a>(self, f: F) -> Morphism<'a, A, C>
+    pub fn head<A, F:'a>(self, f: F) -> Morphism<'a, A, C>
         where
         F: FnOnce<(A,), B>,
     {
@@ -103,13 +103,13 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     /// use morphism::Morphism;
     ///
     /// let f: Morphism<uint, Option<String>> = Morphism::new()
-    ///     .cod(|x: uint| Some(x + 42u + 42u))
-    ///     .cod(|x: Option<uint>| x.map(|y| y - 42u))
-    ///     .cod(|x: Option<uint>| x.map(|y| y.to_string()));
+    ///     .tail(|x: uint| Some(x + 42u + 42u))
+    ///     .tail(|x: Option<uint>| x.map(|y| y - 42u))
+    ///     .tail(|x: Option<uint>| x.map(|y| y.to_string()));
     /// assert_eq!(f.run(0u), Some(String::from_str("42")));
     /// ```
     #[inline]
-    pub fn cod<C, F:'a>(self, f: F) -> Morphism<'a, A, C>
+    pub fn tail<C, F:'a>(self, f: F) -> Morphism<'a, A, C>
         where
         F: FnOnce<(B,), C>,
     {
@@ -145,17 +145,17 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     ///
     /// let mut f: Morphism<uint, uint> = Morphism::new();
     /// for _ in range(0u, 100000u) {
-    ///     f = f.cod(|x| x + 42u);
+    ///     f = f.tail(|x| x + 42u);
     /// }
     /// // the type changes to Morphism<uint, Option<uint>> so rebind f
-    /// let f = f.cod(|x| Some(x));
+    /// let f = f.tail(|x| Some(x));
     ///
     /// let mut g: Morphism<Option<uint>, Option<uint>> = Morphism::new();
     /// for _ in range(0u,  99999u) {
-    ///     g = g.cod(|x| x.map(|y| y - 42u));
+    ///     g = g.tail(|x| x.map(|y| y - 42u));
     /// }
     /// // the type changes to Morphism<Option<uint>, String> so rebind g
-    /// let g = g.cod(|x| x.map(|y| y + 1000u).to_string());
+    /// let g = g.tail(|x| x.map(|y| y + 1000u).to_string());
     ///
     /// assert_eq!(f.then(g).run(0u), String::from_str("Some(1042)"));
     /// ```
@@ -216,18 +216,23 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
 // }
 
 #[test]
-fn test() {
-    let mut fm: Morphism<uint, uint> = Morphism::new();
+fn readme() {
+    let mut f: Morphism<uint, uint> = Morphism::new();
     for _ in range(0u, 100000u) {
-        fm = fm.cod(|:x| x + 42u);
+        f = f.tail(|x| x + 42u);
     }
-    let mut gm: Morphism<uint, uint> = Morphism::new();
-    for _ in range(0u, 100000u) {
-        gm = gm.cod(|:x| x - 42u);
+
+    let mut g: Morphism<Option<uint>, Option<uint>> = Morphism::new();
+    for _ in range(0u,  99999u) {
+        g = g.tail(|x| x.map(|y| y - 42u));
     }
-    let gm = gm
-        .cod(|:x| Some(x))
-        .cod(|:x| x.map(|y| y + 42u))
-        .cod(|:x| x.map(|y| y.to_string()));
-    assert_eq!(fm.then(gm).run(0u), Some(String::from_str("42")));
+
+    // type becomes Morphism<uint, (Option<uint>, bool, String)> so rebind g
+    let g = g
+        .tail(|x| (x.map(|y| y + 1000u), String::from_str("welp")))
+        .tail(|(l, r)| (l.map(|y| y + 42u), r))
+        .tail(|(l, r)| (l, l.is_some(), r))
+        .head(|x| Some(x));
+
+    assert_eq!(f.then(g).run(0u), (Some(1084), true, String::from_str("welp")));
 }
