@@ -58,7 +58,8 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// let f: Morphism<uint, Option<String>> = Morphism::new()
+    /// let f: Morphism<Option<String>, Option<String>> = Morphism::new();
+    /// let f = f // becomes Morphism<uint, Option<String>>
     ///     .head(|x: Option<uint>| x.map(|y| y.to_string()))
     ///     .head(|x: Option<uint>| x.map(|y| y - 42u))
     ///     .head(|x: uint| Some(x + 42u + 42u));
@@ -102,10 +103,11 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// let f: Morphism<uint, Option<String>> = Morphism::new()
-    ///     .tail(|x: uint| Some(x + 42u + 42u))
-    ///     .tail(|x: Option<uint>| x.map(|y| y - 42u))
-    ///     .tail(|x: Option<uint>| x.map(|y| y.to_string()));
+    /// let f: Morphism<uint, uint> = Morphism::new();
+    /// let f = f // becomes Morphism<uint, Option<String>>
+    ///     .tail(|x| Some(x + 42u + 42u))
+    ///     .tail(|x| x.map(|y| y - 42u))
+    ///     .tail(|x| x.map(|y| y.to_string()));
     /// assert_eq!(f.run(0u), Some(String::from_str("42")));
     /// ```
     #[inline]
