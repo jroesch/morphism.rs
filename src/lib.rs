@@ -37,6 +37,7 @@ impl<'a, A:'a> Morphism<'a, A, A> {
     /// let f: Morphism<uint, uint> = Morphism::new();
     /// assert_eq!(f.run(42u), 42u);
     /// ```
+    #[inline]
     pub fn new() -> Morphism<'a, A, A> {
         Morphism {
             mfns: {
@@ -63,6 +64,7 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
     ///     .dom(|x: uint| Some(x + 42u + 42u));
     /// assert_eq!(f.run(0u), Some(String::from_str("42")));
     /// ```
+    #[inline]
     pub fn dom<A, F:'a>(self, f: F) -> Morphism<'a, A, C>
         where
         F: FnOnce<(A,), B>,
@@ -106,6 +108,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     ///     .cod(|x: Option<uint>| x.map(|y| y.to_string()));
     /// assert_eq!(f.run(0u), Some(String::from_str("42")));
     /// ```
+    #[inline]
     pub fn cod<C, F:'a>(self, f: F) -> Morphism<'a, A, C>
         where
         F: FnOnce<(B,), C>,
@@ -179,6 +182,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
 
     /// Given an argument, run the chain of closures in a loop and return the
     /// final result.
+    #[inline]
     pub fn run(mut self, x: A) -> B { unsafe {
         let mut res = transmute::<Box<A>, *const u8>(box x);
         'morphism: loop {
