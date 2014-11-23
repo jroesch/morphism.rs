@@ -43,7 +43,7 @@ impl<'a, A:'a> Morphism<'a, A, A> {
 
 impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     /// Push a new closure onto the end of the chain. This corresponds to
-    /// closure composition.
+    /// closure composition at the codomain.
     ///
     /// # Example
     ///
@@ -52,11 +52,11 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     ///
     /// let f: Morphism<uint, uint> = Morphism::new();
     /// let f = f
-    ///     .push(|x| x * 42u)
-    ///     .push(|x| x - 42u);
+    ///     .cod(|x| x * 42u)
+    ///     .cod(|x| x - 42u);
     /// assert_eq!(f.run(42u), 1722u);
     /// ```
-    pub fn push<C, F:'a>(self, f: F) -> Morphism<'a, A, C>
+    pub fn cod<C, F:'a>(self, f: F) -> Morphism<'a, A, C>
         where
         F: FnOnce<(B,), C>,
     {
@@ -88,17 +88,17 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     ///
     /// let mut f: Morphism<uint, uint> = Morphism::new();
     /// for _ in range(0u, 100000u) {
-    ///     f = f.push(|x| x + 42u);
+    ///     f = f.cod(|x| x + 42u);
     /// }
     /// // the type changes to Morphism<uint, Option<uint>> so rebind f
-    /// let f = f.push(|x| Some(x));
+    /// let f = f.cod(|x| Some(x));
     ///
     /// let mut g: Morphism<Option<uint>, Option<uint>> = Morphism::new();
     /// for _ in range(0u,  99999u) {
-    ///     g = g.push(|x| x.map(|y| y - 42u));
+    ///     g = g.cod(|x| x.map(|y| y - 42u));
     /// }
     /// // the type changes to Morphism<Option<uint>, String> so rebind g
-    /// let g = g.push(|x| x.map(|y| y + 1000u).to_string());
+    /// let g = g.cod(|x| x.map(|y| y + 1000u).to_string());
     ///
     /// assert_eq!(f.then(g).run(0u), String::from_str("Some(1042)"));
     /// ```
@@ -161,15 +161,15 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
 fn test() {
     let mut fm: Morphism<uint, uint> = Morphism::new();
     for _ in range(0u, 100000u) {
-        fm = fm.push(|:x| x + 42u);
+        fm = fm.cod(|:x| x + 42u);
     }
     let mut gm: Morphism<uint, uint> = Morphism::new();
     for _ in range(0u, 100000u) {
-        gm = gm.push(|:x| x - 42u);
+        gm = gm.cod(|:x| x - 42u);
     }
     let gm = gm
-        .push(|:x| Some(x))
-        .push(|:x| x.map(|y| y + 42u))
-        .push(|:x| x.map(|y| y.to_string()));
+        .cod(|:x| Some(x))
+        .cod(|:x| x.map(|y| y + 42u))
+        .cod(|:x| x.map(|y| y.to_string()));
     assert_eq!(fm.then(gm).run(0u), Some(String::from_str("42")));
 }
