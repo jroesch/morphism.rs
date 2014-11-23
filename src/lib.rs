@@ -57,11 +57,11 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// let f: Morphism<uint, uint> = Morphism::new();
-    /// let f = f
-    ///     .dom(|x: uint| x - 42u)
-    ///     .dom(|x: uint| x * 42u);
-    /// assert_eq!(f.run(42u), 1722u);
+    /// let f: Morphism<uint, Option<String>> = Morphism::new()
+    ///     .dom(|x: Option<uint>| x.map(|y| y.to_string()))
+    ///     .dom(|x: Option<uint>| x.map(|y| y - 42u))
+    ///     .dom(|x: uint| Some(x + 42u + 42u));
+    /// assert_eq!(f.run(0u), Some(String::from_str("42")));
     /// ```
     pub fn dom<A, F:'a>(self, f: F) -> Morphism<'a, A, C>
         where
@@ -100,11 +100,11 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// let f: Morphism<uint, uint> = Morphism::new();
-    /// let f = f
-    ///     .cod(|x| x * 42u)
-    ///     .cod(|x| x - 42u);
-    /// assert_eq!(f.run(42u), 1722u);
+    /// let f: Morphism<uint, Option<String>> = Morphism::new()
+    ///     .cod(|x: uint| Some(x + 42u + 42u))
+    ///     .cod(|x: Option<uint>| x.map(|y| y - 42u))
+    ///     .cod(|x: Option<uint>| x.map(|y| y.to_string()));
+    /// assert_eq!(f.run(0u), Some(String::from_str("42")));
     /// ```
     pub fn cod<C, F:'a>(self, f: F) -> Morphism<'a, A, C>
         where
