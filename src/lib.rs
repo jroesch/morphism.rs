@@ -49,8 +49,8 @@ impl<'a, A:'a> Morphism<'a, A, A> {
 }
 
 impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
-    /// Push a new closure onto the front of the chain. This corresponds to
-    /// closure composition at the domain.
+    /// Attach a closure to the front of the closure chain. This corresponds to
+    /// closure composition at the domain (pre-composition).
     ///
     /// # Example
     ///
@@ -92,8 +92,8 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
 }
 
 impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
-    /// Push a new closure onto the end of the chain. This corresponds to
-    /// closure composition at the codomain.
+    /// Attach a closure to the back of the closure chain. This corresponds to
+    /// closure composition at the codomain (post-composition).
     ///
     /// # Example
     ///
