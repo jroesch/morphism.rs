@@ -10,6 +10,9 @@
 
 #![feature(unboxed_closures)]
 
+use std::collections::dlist::{
+    DList,
+};
 use std::collections::ring_buf::{
     RingBuf,
 };
@@ -20,7 +23,7 @@ use std::mem::{
 
 /// A suspended chain of closures.
 pub struct Morphism<'a, A, B> {
-    fns: RingBuf<Box<FnOnce<(*const u8,), *const u8> + 'a>>,
+    mfns: DList<RingBuf<Box<FnOnce<(*const u8,), *const u8> + 'a>>>,
 }
 
 impl<'a, A:'a> Morphism<'a, A, A> {
@@ -36,7 +39,11 @@ impl<'a, A:'a> Morphism<'a, A, A> {
     /// ```
     pub fn new() -> Morphism<'a, A, A> {
         Morphism {
-            fns: RingBuf::new(),
+            mfns: {
+                let mut mfns = DList::new();
+                mfns.push_back(RingBuf::new());
+                mfns
+            },
         }
     }
 }
@@ -62,18 +69,22 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
     {
         match self {
             Morphism {
-                mut fns
+                mut mfns
             } => {
-                let g = box move |:ptr: *const u8| { unsafe {
-                    transmute::<Box<B>, *const u8>(
-                        box f.call_once((
-                            *transmute::<*const u8, Box<A>>(ptr)
-                        ,))
-                    )
-                }};
-                fns.push_front(g);
+                {
+                    // assert!(!mfns.is_empty())
+                    let head = mfns.front_mut().unwrap();
+                    let g = box move |:ptr: *const u8| { unsafe {
+                        transmute::<Box<B>, *const u8>(
+                            box f.call_once((
+                                *transmute::<*const u8, Box<A>>(ptr)
+                            ,))
+                        )
+                    }};
+                    head.push_front(g);
+                };
                 Morphism {
-                    fns: fns,
+                    mfns: mfns,
                 }
             },
         }
@@ -101,18 +112,22 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     {
         match self {
             Morphism {
-                mut fns
+                mut mfns
             } => {
-                let g = box move |:ptr: *const u8| { unsafe {
-                    transmute::<Box<C>, *const u8>(
-                        box f.call_once((
-                            *transmute::<*const u8, Box<B>>(ptr)
-                        ,))
-                    )
-                }};
-                fns.push_back(g);
+                {
+                    // assert!(!mfns.is_empty())
+                    let tail = mfns.back_mut().unwrap();
+                    let g = box move |:ptr: *const u8| { unsafe {
+                        transmute::<Box<C>, *const u8>(
+                            box f.call_once((
+                                *transmute::<*const u8, Box<B>>(ptr)
+                            ,))
+                        )
+                    }};
+                    tail.push_back(g);
+                };
                 Morphism {
-                    fns: fns,
+                    mfns: mfns,
                 }
             },
         }
@@ -144,28 +159,17 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     pub fn then<C>(self, other: Morphism<'a, B, C>) -> Morphism<'a, A, C> {
         match self {
             Morphism {
-                fns: mut lhs,
+                mfns: mut lhs,
             } => {
                 match other {
                     Morphism {
-                        fns: mut rhs,
+                        mfns: rhs,
                     } => {
                         Morphism {
-                            fns: {
-                                if lhs.len() > rhs.len() {
-                                    loop { match rhs.pop_front() {
-                                        None => break,
-                                        Some(f) => lhs.push_back(f),
-                                    }};
-                                    lhs
-                                } else {
-                                    loop { match lhs.pop_back() {
-                                        None => break,
-                                        Some(f) => rhs.push_front(f),
-                                    }};
-                                    rhs
-                                }
-                            }
+                            mfns: {
+                                lhs.append(rhs);
+                                lhs
+                            },
                         }
                     },
                 }
@@ -177,14 +181,25 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     /// final result.
     pub fn run(mut self, x: A) -> B { unsafe {
         let mut res = transmute::<Box<A>, *const u8>(box x);
-        loop { match self.fns.pop_front() {
-            None => {
-                break;
-            },
-            Some(f) => {
-                res = f.call_once((res,));
-            },
-        }}
+        'morphism: loop {
+            match self.mfns.pop_front() {
+                None => {
+                    break 'morphism;
+                },
+                Some(mut fns) => {
+                    'closure: loop {
+                        match fns.pop_front() {
+                            None => {
+                                break 'closure;
+                            },
+                            Some(f) => {
+                                res = f.call_once((res,));
+                            },
+                        }
+                    }
+                },
+            }
+        };
         *transmute::<*const u8, Box<B>>(res)
     }}
 }
