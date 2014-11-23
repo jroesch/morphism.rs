@@ -41,6 +41,45 @@ impl<'a, A:'a> Morphism<'a, A, A> {
     }
 }
 
+impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
+    /// Push a new closure onto the front of the chain. This corresponds to
+    /// closure composition at the domain.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use morphism::Morphism;
+    ///
+    /// let f: Morphism<uint, uint> = Morphism::new();
+    /// let f = f
+    ///     .dom(|x: uint| x - 42u)
+    ///     .dom(|x: uint| x * 42u);
+    /// assert_eq!(f.run(42u), 1722u);
+    /// ```
+    pub fn dom<A, F:'a>(self, f: F) -> Morphism<'a, A, C>
+        where
+        F: FnOnce<(A,), B>,
+    {
+        match self {
+            Morphism {
+                mut fns
+            } => {
+                let g = box move |:ptr: *const u8| { unsafe {
+                    transmute::<Box<B>, *const u8>(
+                        box f.call_once((
+                            *transmute::<*const u8, Box<A>>(ptr)
+                        ,))
+                    )
+                }};
+                fns.push_front(g);
+                Morphism {
+                    fns: fns,
+                }
+            },
+        }
+    }
+}
+
 impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     /// Push a new closure onto the end of the chain. This corresponds to
     /// closure composition at the codomain.

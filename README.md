@@ -13,18 +13,18 @@ let mut f: Morphism<uint, uint> = Morphism::new();
 for _ in range(0u, 100000u) {
     f = f.cod(|x| x + 42u);
 }
-// type becomes Morphism<uint, Option<uint>> so rebind f
-let f = f.cod(|x| Some(x));
 
 let mut g: Morphism<Option<uint>, Option<uint>> = Morphism::new();
 for _ in range(0u,  99999u) {
     g = g.cod(|x| x.map(|y| y - 42u));
 }
-// type becomes Morphism<Option<uint>, (Option<uint>, bool, String)> so rebind g
+
+// type becomes Morphism<uint, (Option<uint>, bool, String)> so rebind g
 let g = g
     .cod(|x| (x.map(|y| y + 1000u), String::from_str("welp")))
     .cod(|(l, r)| (l.map(|y| y + 42u), r))
-    .cod(|(l, r)| (l, l.is_some(), r));
+    .cod(|(l, r)| (l, l.is_some(), r))
+    .dom(|x| Some(x));
 
 assert_eq!(f.then(g).run(0u), (Some(1084), true, String::from_str("welp")));
 ```
