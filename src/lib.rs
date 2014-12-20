@@ -73,9 +73,11 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
         match self {
             Morphism {
                 mut mfns
-            } => {
-                {
-                    // assert!(!mfns.is_empty())
+            }
+            =>
+            {
+                // assert!(!mfns.is_empty())
+                { // borrow mfns
                     let head = mfns.front_mut().unwrap();
                     let g = box move |&:ptr: *const u8| { unsafe {
                         transmute::<Box<B>, *const u8>(
@@ -85,7 +87,7 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
                         )
                     }};
                     head.push_front(g);
-                };
+                }; // forget mfns
                 Morphism {
                     mfns: mfns,
                 }
@@ -118,9 +120,11 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
         match self {
             Morphism {
                 mut mfns
-            } => {
-                {
-                    // assert!(!mfns.is_empty())
+            }
+            =>
+            {
+                // assert!(!mfns.is_empty())
+                { // borrow mfns
                     let tail = mfns.back_mut().unwrap();
                     let g = box move |&:ptr: *const u8| { unsafe {
                         transmute::<Box<C>, *const u8>(
@@ -130,7 +134,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
                         )
                     }};
                     tail.push_back(g);
-                };
+                }; // forget mfns
                 Morphism {
                     mfns: mfns,
                 }
@@ -165,11 +169,15 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
         match self {
             Morphism {
                 mfns: mut lhs,
-            } => {
+            }
+            =>
+            {
                 match other {
                     Morphism {
                         mfns: rhs,
-                    } => {
+                    }
+                    =>
+                    {
                         Morphism {
                             mfns: {
                                 lhs.append(rhs);
