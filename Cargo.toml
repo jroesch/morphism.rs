@@ -1,7 +1,7 @@
 [package]
 
 name = "morphism"
-version = "0.0.1"
+version = "0.1.0"
 authors = [ "Darin Morrison <darinmorrison+rust@gmail.com>" ]
 description = "A structure for suspended closure composition in Rust"
 documentation = "http://www.rust-ci.org/epsilonz/morphism.rs/doc/morphism/"
