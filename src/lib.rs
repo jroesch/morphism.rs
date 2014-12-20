@@ -23,7 +23,7 @@ use std::mem::{
 
 /// A suspended chain of closures.
 pub struct Morphism<'a, A, B> {
-    mfns: DList<RingBuf<Box<FnOnce<(*const u8,), *const u8> + 'a>>>,
+    mfns: DList<RingBuf<Box<Fn<(*const u8,), *const u8> + 'a>>>,
 }
 
 impl<'a, A:'a> Morphism<'a, A, A> {
@@ -68,7 +68,7 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
     #[inline]
     pub fn head<A, F:'a>(self, f: F) -> Morphism<'a, A, C>
         where
-        F: FnOnce<(A,), B>,
+        F: Fn<(A,), B>,
     {
         match self {
             Morphism {
@@ -77,9 +77,9 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
                 {
                     // assert!(!mfns.is_empty())
                     let head = mfns.front_mut().unwrap();
-                    let g = box move |:ptr: *const u8| { unsafe {
+                    let g = box move |&:ptr: *const u8| { unsafe {
                         transmute::<Box<B>, *const u8>(
-                            box f.call_once((
+                            box f.call((
                                 *transmute::<*const u8, Box<A>>(ptr)
                             ,))
                         )
@@ -113,7 +113,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     #[inline]
     pub fn tail<C, F:'a>(self, f: F) -> Morphism<'a, A, C>
         where
-        F: FnOnce<(B,), C>,
+        F: Fn<(B,), C>,
     {
         match self {
             Morphism {
@@ -122,9 +122,9 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
                 {
                     // assert!(!mfns.is_empty())
                     let tail = mfns.back_mut().unwrap();
-                    let g = box move |:ptr: *const u8| { unsafe {
+                    let g = box move |&:ptr: *const u8| { unsafe {
                         transmute::<Box<C>, *const u8>(
-                            box f.call_once((
+                            box f.call((
                                 *transmute::<*const u8, Box<B>>(ptr)
                             ,))
                         )
@@ -199,7 +199,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
                                 break 'closure;
                             },
                             Some(f) => {
-                                res = f.call_once((res,));
+                                res = f.call((res,));
                             },
                         }
                     }
@@ -211,7 +211,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
 }
 
 // FIXME: we can't implement this at the moment; see #18835
-// impl<'a, A, B> FnOnce<(A,), B> for Morphism<'a, A, B> {
+// impl<'a, A, B> Fn<(A,), B> for Morphism<'a, A, B> {
 //     extern "rust-call" fn call_once(self, x:A) -> B {
 //         unimplemented!()
 //     }
