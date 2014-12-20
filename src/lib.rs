@@ -222,5 +222,8 @@ fn readme() {
         .tail(|(l, r)| (l, l.is_some(), r))
         .head(|x| Some(x));
 
-    assert_eq!(f.then(g).run(0u), (Some(1084), true, String::from_str("welp")));
+    let h = f.then(g);
+
+    assert_eq!(h.run(0u), (Some(1084), true, String::from_str("welp")));
+    assert_eq!(h.run(1000u), (Some(2084), true, String::from_str("welp")));
 }
