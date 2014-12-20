@@ -192,7 +192,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     /// Given an argument, run the chain of closures in a loop and return the
     /// final result.
     #[inline]
-    pub fn run(&self, x: A) -> B { unsafe {
+    fn run(&self, x: A) -> B { unsafe {
         let mut res = transmute::<Box<A>, *const u8>(box x);
         for fns in self.mfns.iter() {
             for f in fns.iter() {
