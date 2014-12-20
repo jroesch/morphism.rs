@@ -1,7 +1,6 @@
 #![crate_name="morphism"]
 #![crate_type="lib"]
 
-#![license = "MIT"]
 #![doc(html_root_url = "http://www.rust-ci.org/epsilonz/morphism.rs/doc/morphism/")]
 
 //! This crate provides a structure for suspended closure composition.
