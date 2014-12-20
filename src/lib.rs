@@ -205,11 +205,11 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
 }
 
 // FIXME: we can't implement this at the moment; see #18835
-// impl<'a, A, B> Fn<(A,), B> for Morphism<'a, A, B> {
-//     extern "rust-call" fn call_once(self, x:A) -> B {
-//         unimplemented!()
-//     }
-// }
+impl<'a, A:'a, B:'a> Fn<(A,), B> for Morphism<'a, A, B> {
+    extern "rust-call" fn call(&self, (x,): (A,)) -> B {
+        self.run(x)
+    }
+}
 
 #[test]
 fn readme() {
@@ -232,6 +232,6 @@ fn readme() {
 
     let h = f.then(g);
 
-    assert_eq!(h.run(0u), (Some(1084), true, String::from_str("welp")));
-    assert_eq!(h.run(1000u), (Some(2084), true, String::from_str("welp")));
+    assert_eq!(h(0u), (Some(1084), true, String::from_str("welp")));
+    assert_eq!(h(1000u), (Some(2084), true, String::from_str("welp")));
 }
