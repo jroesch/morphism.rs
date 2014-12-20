@@ -185,27 +185,13 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     /// Given an argument, run the chain of closures in a loop and return the
     /// final result.
     #[inline]
-    pub fn run(mut self, x: A) -> B { unsafe {
+    pub fn run(&self, x: A) -> B { unsafe {
         let mut res = transmute::<Box<A>, *const u8>(box x);
-        'morphism: loop {
-            match self.mfns.pop_front() {
-                None => {
-                    break 'morphism;
-                },
-                Some(mut fns) => {
-                    'closure: loop {
-                        match fns.pop_front() {
-                            None => {
-                                break 'closure;
-                            },
-                            Some(f) => {
-                                res = f.call((res,));
-                            },
-                        }
-                    }
-                },
+        for fns in self.mfns.iter() {
+            for f in fns.iter() {
+                res = f.call((res,));
             }
-        };
+        }
         *transmute::<*const u8, Box<B>>(res)
     }}
 }
