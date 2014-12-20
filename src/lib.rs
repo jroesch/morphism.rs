@@ -203,7 +203,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     }}
 }
 
-// FIXME: we can't implement this at the moment; see #18835
+// NOTE: we can't implement this for FnOnce; see #18835
 impl<'a, A:'a, B:'a> Fn<(A,), B> for Morphism<'a, A, B> {
     extern "rust-call" fn call(&self, (x,): (A,)) -> B {
         self.run(x)
