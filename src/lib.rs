@@ -6,6 +6,11 @@
 //! This crate provides a structure for suspended closure composition.
 //! Composition is delayed and executed in a loop when a `Morphism` is
 //! applied to an argument.
+//!
+//! The motivation for `Morphism` is to provide a means of composing
+//! and evaluating an unbounded (within heap constraints) number of
+//! closures without blowing the stack. In other words, `Morphism` is
+//! one way to work around the lack of tail-call optimization in Rust.
 
 #![feature(unboxed_closures)]
 
