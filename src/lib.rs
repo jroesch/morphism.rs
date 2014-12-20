@@ -4,8 +4,8 @@
 #![doc(html_root_url = "http://www.rust-ci.org/epsilonz/morphism.rs/doc/morphism/")]
 
 //! This crate provides a structure for suspended closure composition.
-//! Composition is delayed and executed in a loop when `Morphism` is applied to
-//! an argument with `Morphism::run`.
+//! Composition is delayed and executed in a loop when a `Morphism` is
+//! applied to an argument.
 
 #![feature(unboxed_closures)]
 
@@ -34,7 +34,7 @@ impl<'a, A:'a> Morphism<'a, A, A> {
     /// use morphism::Morphism;
     ///
     /// let f: Morphism<uint, uint> = Morphism::new();
-    /// assert_eq!(f.run(42u), 42u);
+    /// assert_eq!(f(42u), 42u);
     /// ```
     #[inline]
     pub fn new() -> Morphism<'a, A, A> {
@@ -62,7 +62,7 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
     ///     .head(|x: Option<uint>| x.map(|y| y.to_string()))
     ///     .head(|x: Option<uint>| x.map(|y| y - 42u))
     ///     .head(|x: uint| Some(x + 42u + 42u));
-    /// assert_eq!(f.run(0u), Some(String::from_str("42")));
+    /// assert_eq!(f(0u), Some(String::from_str("42")));
     /// ```
     #[inline]
     pub fn head<A, F:'a>(self, f: F) -> Morphism<'a, A, C>
@@ -109,7 +109,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     ///     .tail(|x| Some(x + 42u + 42u))
     ///     .tail(|x| x.map(|y| y - 42u))
     ///     .tail(|x| x.map(|y| y.to_string()));
-    /// assert_eq!(f.run(0u), Some(String::from_str("42")));
+    /// assert_eq!(f(0u), Some(String::from_str("42")));
     /// ```
     #[inline]
     pub fn tail<C, F:'a>(self, f: F) -> Morphism<'a, A, C>
@@ -162,7 +162,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     /// // the type changes to Morphism<Option<uint>, String> so rebind g
     /// let g = g.tail(|x| x.map(|y| y + 1000u).to_string());
     ///
-    /// assert_eq!(f.then(g).run(0u), String::from_str("Some(1042)"));
+    /// assert_eq!(f.then(g)(0u), String::from_str("Some(1042)"));
     /// ```
     pub fn then<C>(self, other: Morphism<'a, B, C>) -> Morphism<'a, A, C> {
         match self {
