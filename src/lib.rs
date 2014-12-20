@@ -15,7 +15,6 @@ use std::collections::dlist::{
 use std::collections::ring_buf::{
     RingBuf,
 };
-
 use std::mem::{
     transmute,
 };
