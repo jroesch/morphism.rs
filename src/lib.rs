@@ -164,6 +164,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     ///
     /// assert_eq!(f.then(g)(0u), String::from_str("Some(1042)"));
     /// ```
+    #[inline]
     pub fn then<C>(self, other: Morphism<'a, B, C>) -> Morphism<'a, A, C> {
         match self {
             Morphism {
