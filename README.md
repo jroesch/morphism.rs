@@ -7,12 +7,12 @@ A structure for suspended closure composition in Rust
 ## Example
 
 ```rust
-let mut f: Morphism<uint, uint> = Morphism::new();
+let mut f = Morphism::new::<uint>();
 for _ in range(0u, 100000u) {
     f = f.tail(|x| x + 42u);
 }
 
-let mut g: Morphism<Option<uint>, Option<uint>> = Morphism::new();
+let mut g = Morphism::new::<Option<uint>>();
 for _ in range(0u,  99999u) {
     g = g.tail(|x| x.map(|y| y - 42u));
 }

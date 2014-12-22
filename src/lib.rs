@@ -12,6 +12,7 @@
 //! closures without blowing the stack. In other words, `Morphism` is
 //! one way to work around the lack of tail-call optimization in Rust.
 
+#![feature(default_type_params)]
 #![feature(unboxed_closures)]
 
 use std::collections::dlist::{
@@ -24,12 +25,19 @@ use std::mem::{
     transmute,
 };
 
-/// A suspended chain of closures.
-pub struct Morphism<'a, A, B> {
+/// A suspended chain of closures that behave as a function from type
+/// `A` to type `B`.
+///
+/// When `B = A` the parameter `B` can be omitted: `Morphism<'a, A>`
+/// is equivalent to `Morphism<'a, A, A>`.  This is convenient for
+/// providing annotations with `Morphism::new()`.
+pub struct Morphism<'a, A, B = A> {
     mfns: DList<RingBuf<Box<Fn<(*const u8,), *const u8> + 'a>>>,
 }
 
-impl<'a, A> Morphism<'a, A, A> {
+#[allow(dead_code)]
+enum Void {}
+impl Morphism<'static, Void> {
     /// Create the identity chain.
     ///
     /// # Example
@@ -37,11 +45,11 @@ impl<'a, A> Morphism<'a, A, A> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// let f: Morphism<uint, uint> = Morphism::new();
+    /// let f = Morphism::new::<uint>();
     /// assert_eq!(f(42u), 42u);
     /// ```
     #[inline]
-    pub fn new() -> Morphism<'a, A, A> {
+    pub fn new<'a, A>() -> Morphism<'a, A> {
         Morphism {
             mfns: {
                 let mut mfns = DList::new();
@@ -61,8 +69,7 @@ impl<'a, B, C> Morphism<'a, B, C> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// let f: Morphism<Option<String>, Option<String>> = Morphism::new();
-    /// let f = f // becomes Morphism<uint, Option<String>>
+    /// let f = Morphism::new::<Option<String>>()
     ///     .head(|x: Option<uint>| x.map(|y| y.to_string()))
     ///     .head(|x: Option<uint>| x.map(|y| y - 42u))
     ///     .head(|x: uint| Some(x + 42u + 42u));
@@ -108,8 +115,7 @@ impl<'a, A, B> Morphism<'a, A, B> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// let f: Morphism<uint, uint> = Morphism::new();
-    /// let f = f // becomes Morphism<uint, Option<String>>
+    /// let f = Morphism::new::<uint>()
     ///     .tail(|x| Some(x + 42u + 42u))
     ///     .tail(|x| x.map(|y| y - 42u))
     ///     .tail(|x| x.map(|y| y.to_string()));
@@ -152,14 +158,14 @@ impl<'a, A, B> Morphism<'a, A, B> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// let mut f: Morphism<uint, uint> = Morphism::new();
+    /// let mut f = Morphism::new::<uint>();
     /// for _ in range(0u, 100000u) {
     ///     f = f.tail(|x| x + 42u);
     /// }
     /// // the type changes to Morphism<uint, Option<uint>> so rebind f
     /// let f = f.tail(|x| Some(x));
     ///
-    /// let mut g: Morphism<Option<uint>, Option<uint>> = Morphism::new();
+    /// let mut g = Morphism::new::<Option<uint>>();
     /// for _ in range(0u,  99999u) {
     ///     g = g.tail(|x| x.map(|y| y - 42u));
     /// }
@@ -217,12 +223,12 @@ impl<'a, A, B> Fn<(A,), B> for Morphism<'a, A, B> {
 
 #[test]
 fn readme() {
-    let mut f: Morphism<uint, uint> = Morphism::new();
+    let mut f = Morphism::new::<uint>();
     for _ in range(0u, 100000u) {
         f = f.tail(|x| x + 42u);
     }
 
-    let mut g: Morphism<Option<uint>, Option<uint>> = Morphism::new();
+    let mut g = Morphism::new::<Option<uint>>();
     for _ in range(0u,  99999u) {
         g = g.tail(|x| x.map(|y| y - 42u));
     }
@@ -239,4 +245,3 @@ fn readme() {
     assert_eq!(h(0u), (Some(1084), true, String::from_str("welp")));
     assert_eq!(h(1000u), (Some(2084), true, String::from_str("welp")));
 }
-
