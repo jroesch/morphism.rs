@@ -29,7 +29,7 @@ pub struct Morphism<'a, A, B> {
     mfns: DList<RingBuf<Box<Fn<(*const u8,), *const u8> + 'a>>>,
 }
 
-impl<'a, A:'a> Morphism<'a, A, A> {
+impl<'a, A> Morphism<'a, A, A> {
     /// Create the identity chain.
     ///
     /// # Example
@@ -52,7 +52,7 @@ impl<'a, A:'a> Morphism<'a, A, A> {
     }
 }
 
-impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
+impl<'a, B, C> Morphism<'a, B, C> {
     /// Attach a closure to the front of the closure chain. This corresponds to
     /// closure composition at the domain (pre-composition).
     ///
@@ -69,7 +69,7 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
     /// assert_eq!(f(0u), Some(String::from_str("42")));
     /// ```
     #[inline]
-    pub fn head<A, F:'a>(self, f: F) -> Morphism<'a, A, C>
+    pub fn head<A, F: 'a>(self, f: F) -> Morphism<'a, A, C>
         where
         F: Fn<(A,), B>,
     {
@@ -99,7 +99,7 @@ impl<'a, B: 'a, C: 'a> Morphism<'a, B, C> {
     }
 }
 
-impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
+impl<'a, A, B> Morphism<'a, A, B> {
     /// Attach a closure to the back of the closure chain. This corresponds to
     /// closure composition at the codomain (post-composition).
     ///
@@ -116,7 +116,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
     /// assert_eq!(f(0u), Some(String::from_str("42")));
     /// ```
     #[inline]
-    pub fn tail<C, F:'a>(self, f: F) -> Morphism<'a, A, C>
+    pub fn tail<C, F: 'a>(self, f: F) -> Morphism<'a, A, C>
         where
         F: Fn<(B,), C>,
     {
@@ -209,7 +209,7 @@ impl<'a, A: 'a, B: 'a> Morphism<'a, A, B> {
 }
 
 // NOTE: we can't implement this for FnOnce; see #18835
-impl<'a, A:'a, B:'a> Fn<(A,), B> for Morphism<'a, A, B> {
+impl<'a, A, B> Fn<(A,), B> for Morphism<'a, A, B> {
     extern "rust-call" fn call(&self, (x,): (A,)) -> B {
         self.run(x)
     }
@@ -239,3 +239,4 @@ fn readme() {
     assert_eq!(h(0u), (Some(1084), true, String::from_str("welp")));
     assert_eq!(h(1000u), (Some(2084), true, String::from_str("welp")));
 }
+
