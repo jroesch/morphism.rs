@@ -45,8 +45,7 @@ impl Morphism<'static, Void> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// let f = Morphism::new::<uint>();
-    /// assert_eq!(f(42u), 42u);
+    /// assert_eq!(Morphism::new::<uint>()(42u), 42u);
     /// ```
     #[inline]
     pub fn new<'a, A>() -> Morphism<'a, A> {
