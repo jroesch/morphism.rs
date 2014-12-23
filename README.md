@@ -12,6 +12,8 @@ Because `Morphism` implements the `Fn` trait, it is callable like a normal closu
 
 ## Examples
 
+* Compose `Morphism` with closures or another `Morphism`:
+
 ```rust
 let mut f = Morphism::new::<uint>();
 for _ in range(0u, 100000u) {
@@ -36,6 +38,8 @@ assert_eq!(h(0u), (Some(1084), true, String::from_str("welp")));
 assert_eq!(h(1000u), (Some(2084), true, String::from_str("welp")));
 ```
 
+* Use `Morphism` in place of a closure when a `Fn`-like is expected:
+
 ```rust
 use std::iter::AdditiveIterator;
 
@@ -44,6 +48,7 @@ for _ in range(0u64, 10000) {
     f = f.tail(|x| x + 42);
 }
 
+// ::map treats f like any other Fn
 let res = range(0u64, 100).map(f).sum();
 
 assert_eq!(res, 42004950);

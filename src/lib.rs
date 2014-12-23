@@ -254,6 +254,7 @@ fn fn_like() {
         f = f.tail(|x| x + 42);
     }
 
+    // ::map treats f like any other Fn
     let res = range(0u64, 100).map(f).sum();
 
     assert_eq!(res, 42004950);
