@@ -244,3 +244,17 @@ fn readme() {
     assert_eq!(h(0u), (Some(1084), true, String::from_str("welp")));
     assert_eq!(h(1000u), (Some(2084), true, String::from_str("welp")));
 }
+
+#[test]
+fn fn_like() {
+    use std::iter::AdditiveIterator;
+
+    let mut f = Morphism::new::<u64>();
+    for _ in range(0u64, 10000) {
+        f = f.tail(|x| x + 42);
+    }
+
+    let res = range(0u64, 100).map(f).sum();
+
+    assert_eq!(res, 42004950);
+}
