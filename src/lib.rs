@@ -1,7 +1,7 @@
 #![crate_name="morphism"]
 #![crate_type="lib"]
 
-#![doc(html_root_url = "http://www.rust-ci.org/epsilonz/morphism.rs/doc/morphism/")]
+#![doc(html_root_url = "http://epsilonz.github.io/morphism.rs/doc/morphism/")]
 
 //! This crate provides a structure for suspended closure composition.
 //! Composition is delayed and executed in a loop when a `Morphism` is
