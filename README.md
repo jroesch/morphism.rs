@@ -56,7 +56,7 @@ assert_eq!(res, 42004950);
 
 ## Documentation
 
-See the API documentation [here](http://www.rust-ci.org/epsilonz/morphism.rs/doc/morphism/).
+See the API documentation [here](http://epsilonz.github.io/morphism.rs/doc/morphism/).
 
 ## Requirements
 
