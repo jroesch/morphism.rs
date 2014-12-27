@@ -32,7 +32,7 @@ use std::mem::{
 /// is equivalent to `Morphism<'a, A, A>`.  This is convenient for
 /// providing annotations with `Morphism::new()`.
 pub struct Morphism<'a, A, B = A> {
-    mfns: DList<RingBuf<Box<Fn<(*const u8,), *const u8> + 'a>>>,
+    mfns: DList<RingBuf<Box<Fn<(*const (),), *const ()> + 'a>>>,
 }
 
 #[allow(dead_code)]
@@ -88,10 +88,10 @@ impl<'a, B, C> Morphism<'a, B, C> {
                 // assert!(!mfns.is_empty())
                 { // borrow mfns
                     let head = mfns.front_mut().unwrap();
-                    let g = box move |&:ptr: *const u8| { unsafe {
-                        transmute::<Box<B>, *const u8>(
+                    let g = box move |&:ptr: *const ()| { unsafe {
+                        transmute::<Box<B>, *const ()>(
                             box f.call((
-                                *transmute::<*const u8, Box<A>>(ptr)
+                                *transmute::<*const (), Box<A>>(ptr)
                             ,))
                         )
                     }};
@@ -134,10 +134,10 @@ impl<'a, A, B> Morphism<'a, A, B> {
                 // assert!(!mfns.is_empty())
                 { // borrow mfns
                     let tail = mfns.back_mut().unwrap();
-                    let g = box move |&:ptr: *const u8| { unsafe {
-                        transmute::<Box<C>, *const u8>(
+                    let g = box move |&:ptr: *const ()| { unsafe {
+                        transmute::<Box<C>, *const ()>(
                             box f.call((
-                                *transmute::<*const u8, Box<B>>(ptr)
+                                *transmute::<*const (), Box<B>>(ptr)
                             ,))
                         )
                     }};
@@ -203,13 +203,13 @@ impl<'a, A, B> Morphism<'a, A, B> {
     /// final result.
     #[inline]
     fn run(&self, x: A) -> B { unsafe {
-        let mut res = transmute::<Box<A>, *const u8>(box x);
+        let mut res = transmute::<Box<A>, *const ()>(box x);
         for fns in self.mfns.iter() {
             for f in fns.iter() {
                 res = f.call((res,));
             }
         }
-        *transmute::<*const u8, Box<B>>(res)
+        *transmute::<*const (), Box<B>>(res)
     }}
 }
 
