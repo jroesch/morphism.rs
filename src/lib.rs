@@ -32,7 +32,7 @@ use std::mem::{
 /// is equivalent to `Morphism<'a, A, A>`.  This is convenient for
 /// providing annotations with `Morphism::new()`.
 pub struct Morphism<'a, A, B = A> {
-    mfns: DList<RingBuf<Box<Fn<(*const (),), *const ()> + 'a>>>,
+    mfns: DList<RingBuf<Box<Fn(*const ()) -> *const () + 'a>>>,
 }
 
 #[allow(dead_code)]
@@ -77,7 +77,7 @@ impl<'a, B, C> Morphism<'a, B, C> {
     #[inline]
     pub fn head<A, F: 'a>(self, f: F) -> Morphism<'a, A, C>
         where
-        F: Fn<(A,), B>,
+        F: Fn(A) -> B,
     {
         match self {
             Morphism {
@@ -123,7 +123,7 @@ impl<'a, A, B> Morphism<'a, A, B> {
     #[inline]
     pub fn tail<C, F: 'a>(self, f: F) -> Morphism<'a, A, C>
         where
-        F: Fn<(B,), C>,
+        F: Fn(B) -> C,
     {
         match self {
             Morphism {
@@ -214,7 +214,7 @@ impl<'a, A, B> Morphism<'a, A, B> {
 }
 
 // NOTE: we can't implement this for FnOnce; see #18835
-impl<'a, A, B> Fn<(A,), B> for Morphism<'a, A, B> {
+impl<'a, A, B> Fn(A) -> B for Morphism<'a, A, B> {
     extern "rust-call" fn call(&self, (x,): (A,)) -> B {
         self.run(x)
     }
