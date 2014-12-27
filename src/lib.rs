@@ -220,42 +220,48 @@ impl<'a, A, B> Fn(A) -> B for Morphism<'a, A, B> {
     }
 }
 
-#[test]
-fn readme() {
-    let mut f = Morphism::new::<uint>();
-    for _ in range(0u, 100000u) {
-        f = f.tail(|x| x + 42u);
+#[cfg(test)]
+mod tests
+{
+    use super::Morphism;
+
+    #[test]
+    fn readme() {
+        let mut f = Morphism::new::<uint>();
+        for _ in range(0u, 100000u) {
+            f = f.tail(|x| x + 42u);
+        }
+
+        let mut g = Morphism::new::<Option<uint>>();
+        for _ in range(0u,  99999u) {
+            g = g.tail(|x| x.map(|y| y - 42u));
+        }
+
+        // type becomes Morphism<uint, (Option<uint>, bool, String)> so rebind g
+        let g = g
+            .tail(|x| (x.map(|y| y + 1000u), String::from_str("welp")))
+            .tail(|(l, r)| (l.map(|y| y + 42u), r))
+            .tail(|(l, r)| (l, l.is_some(), r))
+            .head(|x| Some(x));
+
+        let h = f.then(g);
+
+        assert_eq!(h(0u), (Some(1084), true, String::from_str("welp")));
+        assert_eq!(h(1000u), (Some(2084), true, String::from_str("welp")));
     }
 
-    let mut g = Morphism::new::<Option<uint>>();
-    for _ in range(0u,  99999u) {
-        g = g.tail(|x| x.map(|y| y - 42u));
+    #[test]
+    fn fn_like() {
+        use std::iter::AdditiveIterator;
+
+        let mut f = Morphism::new::<u64>();
+        for _ in range(0u64, 10000) {
+            f = f.tail(|x| x + 42);
+        }
+
+        // ::map treats f like any other Fn
+        let res = range(0u64, 100).map(f).sum();
+
+        assert_eq!(res, 42004950);
     }
-
-    // type becomes Morphism<uint, (Option<uint>, bool, String)> so rebind g
-    let g = g
-        .tail(|x| (x.map(|y| y + 1000u), String::from_str("welp")))
-        .tail(|(l, r)| (l.map(|y| y + 42u), r))
-        .tail(|(l, r)| (l, l.is_some(), r))
-        .head(|x| Some(x));
-
-    let h = f.then(g);
-
-    assert_eq!(h(0u), (Some(1084), true, String::from_str("welp")));
-    assert_eq!(h(1000u), (Some(2084), true, String::from_str("welp")));
-}
-
-#[test]
-fn fn_like() {
-    use std::iter::AdditiveIterator;
-
-    let mut f = Morphism::new::<u64>();
-    for _ in range(0u64, 10000) {
-        f = f.tail(|x| x + 42);
-    }
-
-    // ::map treats f like any other Fn
-    let res = range(0u64, 100).map(f).sum();
-
-    assert_eq!(res, 42004950);
 }
