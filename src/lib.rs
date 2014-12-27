@@ -83,8 +83,7 @@ impl<'a, B, C> Morphism<'a, B, C> {
             Morphism {
                 mut mfns
             }
-            =>
-            {
+            => {
                 // assert!(!mfns.is_empty())
                 { // borrow mfns
                     let head = mfns.front_mut().unwrap();
@@ -129,8 +128,7 @@ impl<'a, A, B> Morphism<'a, A, B> {
             Morphism {
                 mut mfns
             }
-            =>
-            {
+            => {
                 // assert!(!mfns.is_empty())
                 { // borrow mfns
                     let tail = mfns.back_mut().unwrap();
@@ -179,14 +177,12 @@ impl<'a, A, B> Morphism<'a, A, B> {
             Morphism {
                 mfns: mut lhs,
             }
-            =>
-            {
+            => {
                 match other {
                     Morphism {
                         mfns: rhs,
                     }
-                    =>
-                    {
+                    => {
                         Morphism {
                             mfns: {
                                 lhs.append(rhs);
