@@ -62,8 +62,7 @@ impl Morphism<'static, Void> {
 impl<'a, B, C> Morphism<'a, B, C> {
     #[inline(always)]
     pub unsafe fn unsafe_push_front<A, F: 'a>(&mut self, f: F) -> ()
-        where
-        F: Fn(A) -> B,
+        where F: Fn(A) -> B,
     {
         match self {
             &Morphism {
@@ -100,8 +99,7 @@ impl<'a, B, C> Morphism<'a, B, C> {
     /// ```
     #[inline]
     pub fn head<A, F: 'a>(self, f: F) -> Morphism<'a, A, C>
-        where
-        F: Fn(A) -> B,
+        where F: Fn(A) -> B,
     {
         let mut self0 = self;
         unsafe {
@@ -126,8 +124,7 @@ impl<'a, B, C> Morphism<'a, B, C> {
     /// ```
     #[inline]
     pub fn push_front<F: 'a>(&mut self, f: F) -> ()
-        where
-        F: Fn(B) -> B,
+        where F: Fn(B) -> B,
     {
         unsafe {
             self.unsafe_push_front(f)
@@ -138,8 +135,7 @@ impl<'a, B, C> Morphism<'a, B, C> {
 impl<'a, A, B> Morphism<'a, A, B> {
     #[inline(always)]
     pub unsafe fn unsafe_push_back<C, F: 'a>(&mut self, f: F) -> ()
-        where
-        F: Fn(B) -> C,
+        where F: Fn(B) -> C,
     {
         match self {
             &Morphism {
@@ -176,8 +172,7 @@ impl<'a, A, B> Morphism<'a, A, B> {
     /// ```
     #[inline]
     pub fn tail<C, F: 'a>(self, f: F) -> Morphism<'a, A, C>
-        where
-        F: Fn(B) -> C,
+        where F: Fn(B) -> C,
     {
         let mut self0 = self;
         unsafe {
@@ -202,8 +197,7 @@ impl<'a, A, B> Morphism<'a, A, B> {
     /// ```
     #[inline]
     pub fn push_back<F: 'a>(&mut self, f: F) -> ()
-        where
-        F: Fn(B) -> B,
+        where F: Fn(B) -> B,
     {
         unsafe {
             self.unsafe_push_back(f)
