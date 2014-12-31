@@ -110,7 +110,7 @@ impl<'a, B, C> Morphism<'a, B, C> {
         }
     }
 
-    /// Mutate a given `Morphism<A, B>` by pushing a closure of type
+    /// Mutate a given `Morphism<B, C>` by pushing a closure of type
     /// `Fn(B) -> B` onto the front of the chain.
     ///
     /// # Example
