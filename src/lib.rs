@@ -61,8 +61,8 @@ impl Morphism<'static, Void> {
 
 impl<'a, B, C> Morphism<'a, B, C> {
     #[inline(always)]
-    pub unsafe fn unsafe_push_front<A, F: 'a>(&mut self, f: F) -> ()
-        where F: Fn(A) -> B,
+    pub unsafe fn unsafe_push_front<A, F>(&mut self, f: F) -> ()
+        where F: Fn(A) -> B + 'a,
     {
         match self {
             &Morphism {
@@ -98,8 +98,8 @@ impl<'a, B, C> Morphism<'a, B, C> {
     /// assert_eq!(f(0u), Some(String::from_str("42")));
     /// ```
     #[inline]
-    pub fn head<A, F: 'a>(self, f: F) -> Morphism<'a, A, C>
-        where F: Fn(A) -> B,
+    pub fn head<A, F>(self, f: F) -> Morphism<'a, A, C>
+        where F: Fn(A) -> B + 'a,
     {
         let mut self0 = self;
         unsafe {
@@ -123,8 +123,8 @@ impl<'a, B, C> Morphism<'a, B, C> {
     /// assert_eq!(f(0u64), 45u64);
     /// ```
     #[inline]
-    pub fn push_front<F: 'a>(&mut self, f: F) -> ()
-        where F: Fn(B) -> B,
+    pub fn push_front<F>(&mut self, f: F) -> ()
+        where F: Fn(B) -> B + 'a,
     {
         unsafe {
             self.unsafe_push_front(f)
@@ -134,8 +134,8 @@ impl<'a, B, C> Morphism<'a, B, C> {
 
 impl<'a, A, B> Morphism<'a, A, B> {
     #[inline(always)]
-    pub unsafe fn unsafe_push_back<C, F: 'a>(&mut self, f: F) -> ()
-        where F: Fn(B) -> C,
+    pub unsafe fn unsafe_push_back<C, F>(&mut self, f: F) -> ()
+        where F: Fn(B) -> C + 'a,
     {
         match self {
             &Morphism {
@@ -171,8 +171,8 @@ impl<'a, A, B> Morphism<'a, A, B> {
     /// assert_eq!(f(0u), Some(String::from_str("42")));
     /// ```
     #[inline]
-    pub fn tail<C, F: 'a>(self, f: F) -> Morphism<'a, A, C>
-        where F: Fn(B) -> C,
+    pub fn tail<C, F>(self, f: F) -> Morphism<'a, A, C>
+        where F: Fn(B) -> C + 'a,
     {
         let mut self0 = self;
         unsafe {
@@ -196,8 +196,8 @@ impl<'a, A, B> Morphism<'a, A, B> {
     /// assert_eq!(f(0u64), 45u64);
     /// ```
     #[inline]
-    pub fn push_back<F: 'a>(&mut self, f: F) -> ()
-        where F: Fn(B) -> B,
+    pub fn push_back<F>(&mut self, f: F) -> ()
+        where F: Fn(B) -> B + 'a,
     {
         unsafe {
             self.unsafe_push_back(f)
