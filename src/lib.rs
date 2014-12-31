@@ -60,6 +60,30 @@ impl Morphism<'static, Void> {
 }
 
 impl<'a, B, C> Morphism<'a, B, C> {
+    #[inline(always)]
+    pub unsafe fn unsafe_push_front<A, F: 'a>(&mut self, f: F) -> ()
+        where
+        F: Fn(A) -> B,
+    {
+        match self {
+            &Morphism {
+                ref mut mfns
+            }
+            => {
+                // assert!(!mfns.is_empty())
+                let head = mfns.front_mut().unwrap();
+                let g = box move |&:ptr: *const ()| {
+                    transmute::<Box<B>, *const ()>(
+                        box f.call((
+                            *transmute::<*const (), Box<A>>(ptr)
+                                ,))
+                            )
+                };
+                head.push_front(g);
+            },
+        }
+    }
+
     /// Attach a closure to the front of the closure chain. This corresponds to
     /// closure composition at the domain (pre-composition).
     ///
@@ -79,27 +103,34 @@ impl<'a, B, C> Morphism<'a, B, C> {
         where
         F: Fn(A) -> B,
     {
-        match self {
-            Morphism {
-                mut mfns
-            }
-            => {
-                // assert!(!mfns.is_empty())
-                { // borrow mfns
-                    let head = mfns.front_mut().unwrap();
-                    let g = box move |&:ptr: *const ()| { unsafe {
-                        transmute::<Box<B>, *const ()>(
-                            box f.call((
-                                *transmute::<*const (), Box<A>>(ptr)
-                            ,))
-                        )
-                    }};
-                    head.push_front(g);
-                }; // forget mfns
-                Morphism {
-                    mfns: mfns,
-                }
-            },
+        let mut self0 = self;
+        unsafe {
+            (&mut self0).unsafe_push_front(f);
+            transmute(self0)
+        }
+    }
+
+    /// Mutate a given `Morphism<A, B>` by pushing a closure of type
+    /// `Fn(B) -> B` onto the front of the chain.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use morphism::Morphism;
+    ///
+    /// let mut f = Morphism::new::<u64>();
+    /// for i in range(0u64, 10u64) {
+    ///     (&mut f).push_front(move |&: x| x + i);
+    /// }
+    /// assert_eq!(f(0u64), 45u64);
+    /// ```
+    #[inline]
+    pub fn push_front<F: 'a>(&mut self, f: F) -> ()
+        where
+        F: Fn(B) -> B,
+    {
+        unsafe {
+            self.unsafe_push_front(f)
         }
     }
 }
