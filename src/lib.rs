@@ -12,7 +12,9 @@
 //! closures without blowing the stack. In other words, `Morphism` is
 //! one way to work around the lack of tail-call optimization in Rust.
 
-#![feature(default_type_params)]
+#![feature(box_syntax)]
+#![feature(collections)]
+#![feature(core)]
 #![feature(unboxed_closures)]
 
 use std::collections::dlist::{
@@ -45,7 +47,7 @@ impl Morphism<'static, Void> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// assert_eq!(Morphism::new::<uint>()(42u), 42u);
+    /// assert_eq!(Morphism::new::<u64>()(42u64), 42u64);
     /// ```
     #[inline]
     pub fn new<'a, A>() -> Morphism<'a, A> {
@@ -65,7 +67,7 @@ impl<'a, B, C> Morphism<'a, B, C> {
         where F: Fn(A) -> B + 'a,
     {
         match self {
-            &Morphism {
+            &mut Morphism {
                 ref mut mfns
             }
             => {
@@ -92,10 +94,10 @@ impl<'a, B, C> Morphism<'a, B, C> {
     /// use morphism::Morphism;
     ///
     /// let f = Morphism::new::<Option<String>>()
-    ///     .head(|x: Option<uint>| x.map(|y| y.to_string()))
-    ///     .head(|x: Option<uint>| x.map(|y| y - 42u))
-    ///     .head(|x: uint| Some(x + 42u + 42u));
-    /// assert_eq!(f(0u), Some(String::from_str("42")));
+    ///     .head(|x: Option<u64>| x.map(|y| y.to_string()))
+    ///     .head(|x: Option<u64>| x.map(|y| y - 42u64))
+    ///     .head(|x: u64| Some(x + 42u64 + 42u64));
+    /// assert_eq!(f(0u64), Some(String::from_str("42")));
     /// ```
     #[inline]
     pub fn head<A, F>(self, f: F) -> Morphism<'a, A, C>
@@ -138,7 +140,7 @@ impl<'a, A, B> Morphism<'a, A, B> {
         where F: Fn(B) -> C + 'a,
     {
         match self {
-            &Morphism {
+            &mut Morphism {
                 ref mut mfns
             }
             => {
@@ -164,11 +166,11 @@ impl<'a, A, B> Morphism<'a, A, B> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// let f = Morphism::new::<uint>()
-    ///     .tail(|x| Some(x + 42u + 42u))
-    ///     .tail(|x| x.map(|y| y - 42u))
+    /// let f = Morphism::new::<u64>()
+    ///     .tail(|x| Some(x + 42u64 + 42u64))
+    ///     .tail(|x| x.map(|y| y - 42u64))
     ///     .tail(|x| x.map(|y| y.to_string()));
-    /// assert_eq!(f(0u), Some(String::from_str("42")));
+    /// assert_eq!(f(0u64), Some(String::from_str("42")));
     /// ```
     #[inline]
     pub fn tail<C, F>(self, f: F) -> Morphism<'a, A, C>
@@ -211,24 +213,24 @@ impl<'a, A, B> Morphism<'a, A, B> {
     /// ```rust
     /// use morphism::Morphism;
     ///
-    /// let mut f = Morphism::new::<uint>();
-    /// for _ in range(0u, 100000u) {
-    ///     f = f.tail(|x| x + 42u);
+    /// let mut f = Morphism::new::<u64>();
+    /// for _ in range(0u64, 100000u64) {
+    ///     f = f.tail(|x| x + 42u64);
     /// }
-    /// // the type changes to Morphism<uint, Option<uint>> so rebind f
+    /// // the type changes to Morphism<u64, Option<u64>> so rebind f
     /// let f = f.tail(|x| Some(x));
     ///
-    /// let mut g = Morphism::new::<Option<uint>>();
-    /// for _ in range(0u,  99999u) {
-    ///     g = g.tail(|x| x.map(|y| y - 42u));
+    /// let mut g = Morphism::new::<Option<u64>>();
+    /// for _ in range(0u64,  99999u64) {
+    ///     g = g.tail(|x| x.map(|y| y - 42u64));
     /// }
-    /// // the type changes to Morphism<Option<uint>, String> so rebind g
-    /// let g = g.tail(|x| x.map(|y| y + 1000u).to_string());
+    /// // the type changes to Morphism<Option<u64>, String> so rebind g
+    /// let g = g.tail(|x| x.map(|y| y + 1000u64).unwrap().to_string());
     ///
-    /// assert_eq!(f.then(g)(0u), String::from_str("Some(1042)"));
+    /// assert_eq!(f.then(g)(0u64), String::from_str("1042"));
     /// ```
     #[inline]
-    pub fn then<C>(self, other: Morphism<'a, B, C>) -> Morphism<'a, A, C> {
+    pub fn then<C>(self, mut other: Morphism<'a, B, C>) -> Morphism<'a, A, C> {
         match self {
             Morphism {
                 mfns: mut lhs,
@@ -236,7 +238,7 @@ impl<'a, A, B> Morphism<'a, A, B> {
             => {
                 match other {
                     Morphism {
-                        mfns: rhs,
+                        mfns: ref mut rhs,
                     }
                     => {
                         Morphism {
@@ -266,7 +268,8 @@ impl<'a, A, B> Morphism<'a, A, B> {
 }
 
 // NOTE: we can't implement this for FnOnce; see #18835
-impl<'a, A, B> Fn(A) -> B for Morphism<'a, A, B> {
+impl<'a, A, B> Fn<(A,)> for Morphism<'a, A, B> {
+    type Output = B;
     extern "rust-call" fn call(&self, (x,): (A,)) -> B {
         self.run(x)
     }
@@ -279,27 +282,27 @@ mod tests
 
     #[test]
     fn readme() {
-        let mut f = Morphism::new::<uint>();
-        for _ in range(0u, 100000u) {
-            f = f.tail(|x| x + 42u);
+        let mut f = Morphism::new::<u64>();
+        for _ in range(0u64, 100000u64) {
+            f = f.tail(|x| x + 42u64);
         }
 
-        let mut g = Morphism::new::<Option<uint>>();
-        for _ in range(0u,  99999u) {
-            g = g.tail(|x| x.map(|y| y - 42u));
+        let mut g = Morphism::new::<Option<u64>>();
+        for _ in range(0u64,  99999u64) {
+            g = g.tail(|x| x.map(|y| y - 42u64));
         }
 
-        // type becomes Morphism<uint, (Option<uint>, bool, String)> so rebind g
+        // type becomes Morphism<u64, (Option<u64>, bool, String)> so rebind g
         let g = g
-            .tail(|x| (x.map(|y| y + 1000u), String::from_str("welp")))
-            .tail(|(l, r)| (l.map(|y| y + 42u), r))
+            .tail(|x| (x.map(|y| y + 1000u64), String::from_str("welp")))
+            .tail(|(l, r)| (l.map(|y| y + 42u64), r))
             .tail(|(l, r)| (l, l.is_some(), r))
             .head(|x| Some(x));
 
         let h = f.then(g);
 
-        assert_eq!(h(0u), (Some(1084), true, String::from_str("welp")));
-        assert_eq!(h(1000u), (Some(2084), true, String::from_str("welp")));
+        assert_eq!(h(0u64), (Some(1084), true, String::from_str("welp")));
+        assert_eq!(h(1000u64), (Some(2084), true, String::from_str("welp")));
     }
 
     #[test]
