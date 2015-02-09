@@ -14,28 +14,30 @@ Because `Morphism` implements the `Fn` trait, it is callable like a normal closu
 
 * Compose `Morphism` with closures or another `Morphism`:
 
+
+
 ```rust
-let mut f = Morphism::new::<uint>();
-for _ in range(0u, 100000u) {
-    f = f.tail(|x| x + 42u);
+let mut f = Morphism::new::<u64>();
+for _ in range(0u64, 100000u64) {
+    f = f.tail(|x| x + 42u64);
 }
 
-let mut g = Morphism::new::<Option<uint>>();
-for _ in range(0u,  99999u) {
-    g = g.tail(|x| x.map(|y| y - 42u));
+let mut g = Morphism::new::<Option<u64>>();
+for _ in range(0u64,  99999u64) {
+    g = g.tail(|x| x.map(|y| y - 42u64));
 }
 
-// type becomes Morphism<uint, (Option<uint>, bool, String)> so rebind g
+// type becomes Morphism<u64, (Option<u64>, bool, String)> so rebind g
 let g = g
-    .tail(|x| (x.map(|y| y + 1000u), String::from_str("welp")))
-    .tail(|(l, r)| (l.map(|y| y + 42u), r))
+    .tail(|x| (x.map(|y| y + 1000u64), String::from_str("welp")))
+    .tail(|(l, r)| (l.map(|y| y + 42u64), r))
     .tail(|(l, r)| (l, l.is_some(), r))
     .head(|x| Some(x));
 
 let h = f.then(g);
 
-assert_eq!(h(0u), (Some(1084), true, String::from_str("welp")));
-assert_eq!(h(1000u), (Some(2084), true, String::from_str("welp")));
+assert_eq!(h(0u64), (Some(1084), true, String::from_str("welp")));
+assert_eq!(h(1000u64), (Some(2084), true, String::from_str("welp")));
 ```
 
 * Use `Morphism` in place of a closure when a `Fn`-like is expected:
