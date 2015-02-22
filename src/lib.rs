@@ -17,11 +17,10 @@
 #![feature(core)]
 #![feature(unboxed_closures)]
 
-use std::collections::dlist::{
-    DList,
+use std::collections::{
+    LinkedList,
+    VecDeque,
 };
-use std::collections::ring_buf::{
-    RingBuf,
 };
 use std::mem::{
     transmute,
@@ -34,7 +33,7 @@ use std::mem::{
 /// is equivalent to `Morphism<'a, A, A>`.  This is convenient for
 /// providing annotations with `Morphism::new()`.
 pub struct Morphism<'a, A, B = A> {
-    mfns: DList<RingBuf<Box<Fn(*const ()) -> *const () + 'a>>>,
+    mfns: LinkedList<VecDeque<Box<Fn(*const ()) -> *const () + 'a>>>,
 }
 
 #[allow(dead_code)]
@@ -53,8 +52,8 @@ impl Morphism<'static, Void> {
     pub fn new<'a, A>() -> Morphism<'a, A> {
         Morphism {
             mfns: {
-                let mut mfns = DList::new();
-                mfns.push_back(RingBuf::new());
+                let mut mfns = LinkedList::new();
+                mfns.push_back(VecDeque::new());
                 mfns
             },
         }
