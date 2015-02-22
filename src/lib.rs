@@ -21,6 +21,8 @@ use std::collections::{
     LinkedList,
     VecDeque,
 };
+use std::marker::{
+    PhantomData,
 };
 use std::mem::{
     transmute,
@@ -34,6 +36,7 @@ use std::mem::{
 /// providing annotations with `Morphism::new()`.
 pub struct Morphism<'a, A, B = A> {
     mfns: LinkedList<VecDeque<Box<Fn(*const ()) -> *const () + 'a>>>,
+    phan: PhantomData<(A, B)>,
 }
 
 #[allow(dead_code)]
@@ -56,6 +59,7 @@ impl Morphism<'static, Void> {
                 mfns.push_back(VecDeque::new());
                 mfns
             },
+            phan: PhantomData,
         }
     }
 }
@@ -67,7 +71,8 @@ impl<'a, B, C> Morphism<'a, B, C> {
     {
         match self {
             &mut Morphism {
-                ref mut mfns
+                ref mut mfns,
+                ..
             }
             => {
                 // assert!(!mfns.is_empty())
@@ -140,7 +145,8 @@ impl<'a, A, B> Morphism<'a, A, B> {
     {
         match self {
             &mut Morphism {
-                ref mut mfns
+                ref mut mfns,
+                ..
             }
             => {
                 // assert!(!mfns.is_empty())
@@ -233,11 +239,13 @@ impl<'a, A, B> Morphism<'a, A, B> {
         match self {
             Morphism {
                 mfns: mut lhs,
+                ..
             }
             => {
                 match other {
                     Morphism {
                         mfns: ref mut rhs,
+                        ..
                     }
                     => {
                         Morphism {
@@ -245,6 +253,7 @@ impl<'a, A, B> Morphism<'a, A, B> {
                                 lhs.append(rhs);
                                 lhs
                             },
+                            phan: PhantomData,
                         }
                     },
                 }
