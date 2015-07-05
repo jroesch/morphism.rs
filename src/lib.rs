@@ -12,8 +12,6 @@
 //! closures without blowing the stack. In other words, `Morphism` is
 //! one way to work around the lack of tail-call optimization in Rust.
 
-#![feature(box_syntax)]
-#![feature(collections)]
 #![feature(core)]
 #![feature(unboxed_closures)]
 
@@ -77,13 +75,13 @@ impl<'a, B, C> Morphism<'a, B, C> {
             => {
                 // assert!(!mfns.is_empty())
                 let head = mfns.front_mut().unwrap();
-                let g = box move |&:ptr: *const ()| {
+                let g = Box::new(move |ptr: *const ()| {
                     transmute::<Box<B>, *const ()>(
-                        box f.call((
+                        Box::new(f.call((
                             *transmute::<*const (), Box<A>>(ptr)
                                 ,))
-                            )
-                };
+                            ))
+                });
                 head.push_front(g);
             },
         }
@@ -151,13 +149,13 @@ impl<'a, A, B> Morphism<'a, A, B> {
             => {
                 // assert!(!mfns.is_empty())
                 let tail = mfns.back_mut().unwrap();
-                let g = box move |&:ptr: *const ()| {
+                let g = Box::new(move |ptr: *const ()| {
                     transmute::<Box<C>, *const ()>(
-                        box f.call((
+                        Box::new(f.call((
                             *transmute::<*const (), Box<B>>(ptr)
-                        ,))
+                        ,)))
                     )
-                };
+                });
                 tail.push_back(g);
             },
         }
@@ -265,7 +263,7 @@ impl<'a, A, B> Morphism<'a, A, B> {
     /// final result.
     #[inline]
     fn run(&self, x: A) -> B { unsafe {
-        let mut res = transmute::<Box<A>, *const ()>(box x);
+        let mut res = transmute::<Box<A>, *const ()>(Box::new(x));
         for fns in self.mfns.iter() {
             for f in fns.iter() {
                 res = f.call((res,));
@@ -275,9 +273,20 @@ impl<'a, A, B> Morphism<'a, A, B> {
     }}
 }
 
-// NOTE: we can't implement this for FnOnce; see #18835
-impl<'a, A, B> Fn<(A,)> for Morphism<'a, A, B> {
+impl<'a, A, B> FnOnce<(A,)> for Morphism<'a, A, B> {
     type Output = B;
+    extern "rust-call" fn call_once(self, (x,): (A,)) -> B {
+        self.run(x)
+    }
+}
+
+impl<'a, A, B> FnMut<(A,)> for Morphism<'a, A, B> {
+    extern "rust-call" fn call_mut(&mut self, (x,): (A,)) -> B {
+        self.run(x)
+    }
+}
+
+impl<'a, A, B> Fn<(A,)> for Morphism<'a, A, B> {
     extern "rust-call" fn call(&self, (x,): (A,)) -> B {
         self.run(x)
     }
